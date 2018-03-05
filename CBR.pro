@@ -27,11 +27,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+    cbzcomic.cpp \
+    jpeg.cpp \
+    png.cpp \
+    bmp.cpp
 
 HEADERS += \
         mainwindow.h \
-    image.h
+    image.h \
+    comic.h \
+    cbzcomic.h \
+    jpeg.h \
+    png.h \
+    bmp.h
 
 FORMS += \
         mainwindow.ui

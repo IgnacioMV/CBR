@@ -4,10 +4,13 @@
 #include <QMainWindow>
 #include <QLabel>
 #include <QScrollArea>
+#include <QPushButton>
 
 #include <archive.h>
 #include <archive_entry.h>
 
+#include <comic.h>
+#include <cbzcomic.h>
 #include <image.h>
 
 namespace Ui {
@@ -24,8 +27,12 @@ public:
 
 private slots:
     void createActions();
+    void enablePageActions();
+    void disablePageActions();
+    void updatePageActions();
     void openFile();
     void closeFile();
+    void twoPages();
     void zoomIn();
     void zoomOut();
     void normalSize();
@@ -36,30 +43,32 @@ private slots:
     void lastPage();
 
 private:
+    Comic *comic;
+
     void scaleImage(double factor);
-
     //void resizeEvent(QResizeEvent* resizeEvent);
-
     int displayImageInPosition(int position);
-    static bool compareImages(const Image &i1, const Image &i2);
+    int displayTwoImageInPosition(int position);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
     double scaleFactor;
+    bool twoPage;
     Ui::MainWindow *ui;
-    QString currentFile;
     QLabel *imageLabel;
     QScrollArea *scrollArea;
     QImage currentImage;
+    QPushButton *firstPageButton;
+    QPushButton *previousPageButton;
+    QPushButton *nextPageButton;
+    QPushButton *lastPageButton;
+    QLabel *currentPageLabel;
 
-    struct archive *arch;
-    QList<Image> imageList;
-    int maxPage;
-    int currentPage;
     int hb0, vb0, x0, y0, x, y;
 
+    QAction *twoPagesAct;
     QAction *zoomInAct;
     QAction *zoomOutAct;
-    QAction *normalSizeAct ;
+    QAction *normalSizeAct;
 
     bool eventFilter(QObject *obj, QEvent *event);
 };

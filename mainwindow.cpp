@@ -15,6 +15,10 @@
 #include <QtDebug>
 #include <QScrollBar>
 #include <QMouseEvent>
+#include <QPainter>
+
+#include <comic.h>
+#include <cbzcomic.h>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -26,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
 
     scaleFactor = 1.0;
+    twoPage = false;
     scrollArea = new QScrollArea();
     imageLabel = new QLabel();
     //QPixmap pixmap("/home/nacho/CBR/example.png");
@@ -39,12 +44,20 @@ MainWindow::MainWindow(QWidget *parent) :
     scrollArea->horizontalScrollBar()->installEventFilter(this);
     scrollArea->verticalScrollBar()->installEventFilter(this);
 
-
     QHBoxLayout *btnLayout = new QHBoxLayout;
-    QPushButton *firstPageButton = new QPushButton("First");
-    QPushButton *previousPageButton = new QPushButton("Previous");
-    QPushButton *nextPageButton = new QPushButton("Next");
-    QPushButton *lastPageButton = new QPushButton("Last");
+    firstPageButton = new QPushButton("First");
+    previousPageButton = new QPushButton("Previous");
+    nextPageButton = new QPushButton("Next");
+    lastPageButton = new QPushButton("Last");
+
+    currentPageLabel = new QLabel(" ");
+    currentPageLabel->setStyleSheet("QLabel { background-color : white }");
+    currentPageLabel->setFixedWidth(50);
+    currentPageLabel->setAlignment(Qt::AlignCenter);
+
+    //QIcon icon = style()->standardIcon(QStyle::SP_ArrowForward);
+    //QPixmap pixmap = icon.pixmap(QSize(64, 64));
+    //nextPageButton->setIcon(icon);
 
     QObject::connect(nextPageButton, SIGNAL(clicked()), this, SLOT(nextPage()));
     QObject::connect(previousPageButton,SIGNAL(clicked()), this, SLOT(previousPage()));
@@ -53,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     btnLayout->addWidget(firstPageButton);
     btnLayout->addWidget(previousPageButton);
+    btnLayout->addWidget(currentPageLabel);
     btnLayout->addWidget(nextPageButton);
     btnLayout->addWidget(lastPageButton);
 
@@ -60,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
     centralLayout->addLayout(btnLayout);
 
     createActions();
+    updatePageActions();
 }
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
@@ -91,9 +106,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     if (event->type() == QEvent::Wheel) {
         QWheelEvent *wheelEvent = static_cast<QWheelEvent*>(event);
         if ((wheelEvent->modifiers() & Qt::ControlModifier) && (wheelEvent->modifiers() & Qt::ShiftModifier)) {
-            if (wheelEvent->delta() > 0 && scaleFactor < 3.0)
+            if (wheelEvent->delta() > 0 && scaleFactor < 6.0)
                 zoomIn();
-            else if(wheelEvent->delta() < 0 && scaleFactor > 0.333)
+            else if(wheelEvent->delta() < 0 && scaleFactor > 1)
                 zoomOut();
             return true;
         }
@@ -120,6 +135,11 @@ void MainWindow::createActions()
 
     QMenu *viewMenu = menuBar()->addMenu(tr("&View"));
 
+    twoPagesAct = viewMenu->addAction(tr("Two page mode"), this, &MainWindow::twoPages);
+    twoPagesAct->setEnabled(true);
+    twoPagesAct->setCheckable(true);
+    twoPagesAct->setShortcut(tr("Ctrl+T"));
+
     zoomInAct = viewMenu->addAction(tr("Zoom &In (25%)"), this, &MainWindow::zoomIn);
     zoomInAct->setShortcut(QKeySequence::ZoomIn);
 
@@ -129,6 +149,40 @@ void MainWindow::createActions()
     normalSizeAct = viewMenu->addAction(tr("&Normal Size"), this, &MainWindow::normalSize);
     normalSizeAct->setShortcut(tr("Ctrl+S"));
 }
+
+void MainWindow::enablePageActions()
+{
+    firstPageButton->setEnabled(true);
+    nextPageButton->setEnabled(true);
+    previousPageButton->setEnabled(true);
+    lastPageButton->setEnabled(true);
+}
+
+void MainWindow::disablePageActions()
+{
+    firstPageButton->setEnabled(false);
+    nextPageButton->setEnabled(false);
+    previousPageButton->setEnabled(false);
+    lastPageButton->setEnabled(false);
+}
+
+void MainWindow::updatePageActions()
+{
+    if (comic == NULL) {
+        disablePageActions();
+        return ;
+    }
+    enablePageActions();
+    if (comic->getCurrentPage() == comic->getPageCount()-1) {
+        nextPageButton->setEnabled(false);
+        lastPageButton->setEnabled(false);
+    }
+    else if (comic->getCurrentPage() == 0) {
+        previousPageButton->setEnabled(false);
+        firstPageButton->setEnabled(false);
+    }
+}
+
 /*
 void MainWindow::resizeEvent(QResizeEvent* event)
 {
@@ -140,111 +194,52 @@ void MainWindow::resizeEvent(QResizeEvent* event)
     imageLabel->setPixmap(QPixmap::fromImage(currentImage).scaled(w,h,Qt::KeepAspectRatio));
 }
 */
-bool MainWindow::compareImages(const Image &i1, const Image &i2) {
-    int x = QString::compare(i1.getFilename(), i2.getFilename(), Qt::CaseInsensitive);
-    if (x < 0)
-        return true;
-    else
-        return false;
-
-}
-
 void MainWindow::openFile()
 {
-    currentPage = 0;
-    maxPage = 0;
     QString fileName = QFileDialog::getOpenFileName(this, "Open the file", "/home/nacho/CBR_old", tr("Comic files (*.cbr *.cbz)"));
-
     if(fileName.isEmpty() || fileName.isNull()){
         return;
     }
-    imageList.clear();
-
-    QByteArray ba;
-    currentFile = "";
-
-    struct archive_entry *entry;
-    int r;
-    arch = archive_read_new();
-    archive_read_support_filter_all(arch);
-    archive_read_support_format_all(arch);
-    r = archive_read_open_filename(arch, fileName.toStdString().c_str(), 10240);
-    if (r != ARCHIVE_OK)
-        exit(1);
-    while (archive_read_next_header(arch, &entry) == ARCHIVE_OK) {
-        qInfo("%s",archive_entry_pathname(entry));
-
-        int ret;
-        const void *buff;
-        size_t size;
-        off_t offset;
-
-        for (;;) {
-            ret = archive_read_data_block(arch, &buff, &size, &offset);
-            ba.append((char *)buff, size);
-            if (ret == ARCHIVE_EOF){
-                break;
-            }
-        }
-
-        QMimeDatabase db;
-        QMimeType mime = db.mimeTypeForData(ba);
-        //qInfo() << "mime.name: " << mime.name();            // Name of the MIME type ("audio/mpeg").
-        //qInfo() << "mime.suffixes " << mime.suffixes();        // Known suffixes for this MIME type ("mp3", "mpga").
-        //qInfo() << "mime.preferredSuffix: " << mime.preferredSuffix(); // Preferred suffix for this MIME type ("mp3").com
-
-        if (mime.name().indexOf("image/png") != -1) {
-            maxPage += 1;
-        }
-        else if (mime.name().indexOf("image/jpeg") != -1){
-            maxPage += 1;
-        }
-        else if (mime.name().indexOf("image/bmp") != -1){
-            maxPage += 1;
-        }
-        else
-            continue;
-
-        Image image;
-        image.setFilename(archive_entry_pathname(entry));
-        image.setBA(ba);
-        imageList.append(image);
-        ba.clear();
-    }
-
-    archive_read_data_skip(arch);
-    r = archive_read_free(arch);
-    if (r != ARCHIVE_OK)
-        exit(1);
-
-    qSort(imageList.begin(), imageList.end(), MainWindow::compareImages);
-    qInfo() << "imageList size: " << imageList.size();
-    for(int i = 0; i < imageList.size(); i++) {
-        qInfo() << "filename: " << imageList.value(i).getFilename();
-    }
-    displayImageInPosition(currentPage);
+    comic = new CBZComic(fileName);
+    comic->extract();
+    qInfo() << twoPage << comic->getCurrentPage();
+    (twoPage) ? displayTwoImageInPosition(comic->getCurrentPage()) : displayImageInPosition(comic->getCurrentPage());
+    updatePageActions();
 }
 
-void MainWindow::closeFile() {
-    maxPage = 0;
-    currentPage = 0;
-    imageList.clear();
+void MainWindow::closeFile()
+{
+    comic = NULL;
     imageLabel->setPixmap(QPixmap());
     qInfo() << "file closed";
+    updatePageActions();
 }
 
-void MainWindow::zoomIn() {
+void MainWindow::twoPages()
+{
+    twoPage = twoPagesAct->isChecked();
+    if (comic != NULL)
+        (twoPage) ? displayTwoImageInPosition(comic->getCurrentPage()) : displayImageInPosition(comic->getCurrentPage());
+}
+
+void MainWindow::zoomIn()
+{
     scaleImage(1.25);
 }
 
-void MainWindow::zoomOut() {
+void MainWindow::zoomOut()
+{
     scaleImage(0.8);
 }
 
-void MainWindow::normalSize() {
+void MainWindow::normalSize()
+{
+    int w = scrollArea->width();
+    int h = scrollArea->height();
+    imageLabel->setPixmap(QPixmap::fromImage(currentImage).scaled(w,h,Qt::KeepAspectRatio, Qt::FastTransformation));
     imageLabel->adjustSize();
     zoomInAct->setEnabled(true);
-    zoomOutAct->setEnabled(true);
+    zoomOutAct->setEnabled(false);
     scaleFactor = 1.0;
 }
 
@@ -252,50 +247,113 @@ void MainWindow::scaleImage(double factor)
 {
     Q_ASSERT(imageLabel->pixmap());
     scaleFactor *= factor;
-    imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
-
+    //imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
+    int w = scrollArea->width();
+    int h = scrollArea->height();
+    qInfo() << "w: " << w;
+    imageLabel->setPixmap(QPixmap::fromImage(currentImage).scaled(w*scaleFactor,h*scaleFactor,Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    imageLabel->adjustSize();
     adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(scrollArea->verticalScrollBar(), factor);
 
-    zoomInAct->setEnabled(scaleFactor < 3.0);
-    zoomOutAct->setEnabled(scaleFactor > 0.333);
-
+    zoomInAct->setEnabled(scaleFactor < 6.0);
+    zoomOutAct->setEnabled(scaleFactor > 1.0);
 }
 
-void MainWindow::nextPage() {
-    displayImageInPosition(currentPage+1);
+void MainWindow::nextPage()
+{
+    int nextPosition = comic->getCurrentPage()+((twoPage) ? 2 : 1);
+    (twoPage) ? displayTwoImageInPosition(nextPosition) : displayImageInPosition(nextPosition);
+    updatePageActions();
 }
 
-void MainWindow::previousPage() {
-    displayImageInPosition(currentPage-1);
+void MainWindow::previousPage()
+{
+    int nextPosition = comic->getCurrentPage()-((twoPage) ? 2 : 1);
+    (twoPage) ? displayTwoImageInPosition(nextPosition) : displayImageInPosition(nextPosition);
+    updatePageActions();
 }
 
-void MainWindow::firstPage(){
-    displayImageInPosition(0);
+void MainWindow::firstPage()
+{
+    (twoPage) ? displayTwoImageInPosition(0) : displayImageInPosition(0);
+    updatePageActions();
 }
 
-void MainWindow::lastPage(){
-    int lastPage = imageList.size()-1;
-    displayImageInPosition(lastPage);
+void MainWindow::lastPage()
+{
+    int lastPage = comic->getPageCount()-1;
+    (twoPage) ? displayTwoImageInPosition(lastPage) : displayImageInPosition(lastPage);
+    updatePageActions();
 }
 
-int MainWindow::displayImageInPosition(int position) {
-    if (position < 0 || position > (maxPage-1))
+int MainWindow::displayImageInPosition(int position)
+{
+    qInfo() << "position: " << position;
+    if (position < 0 || position > (comic->getPageCount()-1))
         return -1;
-    Image nextImage = imageList.value(position);
-    qInfo() << "appended ba size: " << nextImage.getBA().size();
-    QByteArray ba = nextImage.getBA();
+
+    Image* nextImage = comic->getPageInPosition(position);
+    qInfo() << "appended filename: " << nextImage->getFilename();
+    qInfo() << "appended ba size: " << nextImage->getBA().size();
+    QByteArray ba = nextImage->getBA();
     QBuffer qbuff(&ba);
     QImageReader qimg;
     qimg.setDecideFormatFromContent(true);
     qimg.setDevice(&qbuff);
-    qInfo("%i",qimg.canRead());
+    qInfo("can read: %s", (qimg.canRead()) ? "yes" : "no");
     currentImage = qimg.read();
-    int w = scrollArea->width();
-    int h = scrollArea->height();
-    imageLabel->setPixmap(QPixmap::fromImage(currentImage).scaled(w,h,Qt::KeepAspectRatio));
-    currentPage = position;
+    comic->setCurrentPage(position);
     normalSize();
+    currentPageLabel->setText(QString::number(position));
+
+    return 0;
+}
+
+int MainWindow::displayTwoImageInPosition(int position)
+{
+    qInfo() << "position: " << position;
+    if (position < 0 || position > (comic->getPageCount()-1))
+        return -1;
+    if (position == (comic->getPageCount()-1) && position%2 == 0) {
+        displayImageInPosition(position);
+        return 0;
+    }
+
+    position = (position%2 == 0) ? position : position-1;
+
+    Image* nextImage1 = comic->getPageInPosition(position);
+    Image* nextImage2 = comic->getPageInPosition(position+1);
+    QByteArray ba1 = nextImage1->getBA();
+    QByteArray ba2 = nextImage2->getBA();
+    QBuffer qbuff1(&ba1);
+    QBuffer qbuff2(&ba2);
+    QImageReader qimg1;
+    QImageReader qimg2;
+    qimg1.setDecideFormatFromContent(true);
+    qimg1.setDevice(&qbuff1);
+    qimg2.setDecideFormatFromContent(true);
+    qimg2.setDevice(&qbuff2);
+    qInfo("can read 1: %s", (qimg1.canRead()) ? "yes" : "no");
+    qInfo("can read 2: %s", (qimg2.canRead()) ? "yes" : "no");
+    QImage firstImage = qimg1.read();
+    QImage secondImage = qimg2.read();
+    QPixmap *pixmap = new QPixmap(firstImage.width()+secondImage.width()+3, (firstImage.height() > secondImage.height()) ? firstImage.height() : secondImage.height());
+    pixmap->fill(Qt::transparent);
+    QPainter *painter = new QPainter(pixmap);
+    painter->drawPixmap(0, 0, firstImage.width(), firstImage.height(), QPixmap::fromImage(firstImage));
+    QPixmap pageSep(3, pixmap->height());
+    pageSep.fill(QColor(192, 192, 192, 127));
+    painter->drawPixmap(firstImage.width()+1, 0, 3, pixmap->height(), pageSep);
+    painter->drawPixmap(firstImage.width()+4, 0, secondImage.width(), secondImage.height(), QPixmap::fromImage(secondImage));
+    painter->end();
+    qInfo() << "firstImage.height = " << firstImage.width();
+    qInfo() << "secondImage.height = " << secondImage.width();
+    currentImage = pixmap->toImage();
+    comic->setCurrentPage(position);
+    normalSize();
+    currentPageLabel->setText(QString::number(position)+"-"+QString::number(position+1));
+
     return 0;
 }
 
