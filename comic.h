@@ -21,7 +21,10 @@ public:
     void setPageCount(int pageCount) { this->pageCount = pageCount; }
     void sortPages() { qSort(this->pages.begin(), this->pages.end(), compareImages); }
     virtual int extract() = 0;
-    virtual ~Comic(){}
+    virtual ~Comic(){
+        for (auto img : this->pages)
+            delete img;
+    }
 
 private:
     static bool compareImages(Image* i1, Image* i2) {

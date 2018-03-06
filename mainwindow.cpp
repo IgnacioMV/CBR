@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
+#include <QListWidget>
 #include <QFileDialog>
 #include <QImageReader>
 #include <QBuffer>
@@ -28,6 +28,15 @@ MainWindow::MainWindow(QWidget *parent) :
     QWidget *centralWidget = new QWidget;
     this->setCentralWidget(centralWidget);
     QVBoxLayout *centralLayout = new QVBoxLayout(centralWidget);
+    QHBoxLayout *midLayout = new QHBoxLayout;
+
+    thumbnailList = new QListWidget;
+    thumbnailList->setViewMode(QListView::IconMode);
+    thumbnailList->setMovement(QListView::Static);
+    thumbnailList->setFixedWidth(200);
+    //new QListWidgetItem(tr("Oak"), thumbnailList);
+    //new QListWidgetItem(tr("Fir"), thumbnailList);
+    //new QListWidgetItem(tr("Pine"), thumbnailList);
 
     scaleFactor = 1.0;
     twoPage = false;
@@ -70,7 +79,10 @@ MainWindow::MainWindow(QWidget *parent) :
     btnLayout->addWidget(nextPageButton);
     btnLayout->addWidget(lastPageButton);
 
-    centralLayout->addWidget(scrollArea);
+    midLayout->addWidget(thumbnailList);
+    midLayout->addWidget(scrollArea);
+
+    centralLayout->addLayout(midLayout);
     centralLayout->addLayout(btnLayout);
 
     createActions();
@@ -196,10 +208,12 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 */
 void MainWindow::openFile()
 {
+
     QString fileName = QFileDialog::getOpenFileName(this, "Open the file", "/home/nacho/CBR_old", tr("Comic files (*.cbr *.cbz)"));
     if(fileName.isEmpty() || fileName.isNull()){
         return;
     }
+    closeFile();
     comic = new CBZComic(fileName);
     comic->extract();
     qInfo() << twoPage << comic->getCurrentPage();
@@ -209,6 +223,7 @@ void MainWindow::openFile()
 
 void MainWindow::closeFile()
 {
+    delete comic;
     comic = NULL;
     imageLabel->setPixmap(QPixmap());
     qInfo() << "file closed";
@@ -307,6 +322,10 @@ int MainWindow::displayImageInPosition(int position)
     normalSize();
     currentPageLabel->setText(QString::number(position));
 
+    QListWidgetItem *itm = new QListWidgetItem(QString::number(position));
+    itm->setIcon(QIcon(QPixmap::fromImage(currentImage).scaled(100,100,Qt::KeepAspectRatio, Qt::FastTransformation)));
+    thumbnailList->addItem(itm);
+
     return 0;
 }
 
@@ -315,7 +334,7 @@ int MainWindow::displayTwoImageInPosition(int position)
     qInfo() << "position: " << position;
     if (position < 0 || position > (comic->getPageCount()-1))
         return -1;
-    if (position == (comic->getPageCount()-1) && position%2 == 0) {
+    if (position == 0 || position == (comic->getPageCount()-1)) {
         displayImageInPosition(position);
         return 0;
     }

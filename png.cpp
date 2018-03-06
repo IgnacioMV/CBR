@@ -1,8 +1,14 @@
 #include "png.h"
 
-PNG::PNG()
+PNG::PNG() : Image()
 {
 
+}
+
+QPixmap PNG::getThumbnail()
+{
+    QPixmap pixmap;
+    return pixmap;
 }
 
 QPixmap PNG::getPixmapForResolution(int w, int h) {

@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QPushButton>
+#include <QListWidget>
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -54,6 +55,7 @@ private:
     double scaleFactor;
     bool twoPage;
     Ui::MainWindow *ui;
+    QListWidget *thumbnailList;
     QLabel *imageLabel;
     QScrollArea *scrollArea;
     QImage currentImage;

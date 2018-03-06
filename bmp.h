@@ -8,6 +8,8 @@ class BMP: public Image
 public:
     BMP();
     QPixmap getPixmapForResolution(int w, int h);
+    QPixmap getThumbnail();
+    ~BMP(){}
 };
 
 #endif // BMP_H

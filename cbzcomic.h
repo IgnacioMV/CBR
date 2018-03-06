@@ -17,6 +17,7 @@ public:
     CBZComic(const CBZComic &cbzcomic) = default;
     explicit CBZComic(QString filename) : Comic(filename) {}
     int extract();
+    ~CBZComic(){}
 };
 
 #endif // CBZCOMIC_H
