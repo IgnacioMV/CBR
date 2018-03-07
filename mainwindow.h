@@ -51,6 +51,7 @@ private:
     int displayImageInPosition(int position);
     int displayTwoImageInPosition(int position);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
+    static void asyncThumbnail(Image *sourceImage, QListWidgetItem *thumbnailItem, int w, int h);
 
     double scaleFactor;
     bool twoPage;

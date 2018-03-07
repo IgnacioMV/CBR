@@ -5,6 +5,7 @@
 #-------------------------------------------------
 
 QT       += core gui
+CONFIG += c++11
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -31,7 +32,8 @@ SOURCES += \
     cbzcomic.cpp \
     jpeg.cpp \
     png.cpp \
-    bmp.cpp
+    bmp.cpp \
+    thumbnailworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -40,7 +42,8 @@ HEADERS += \
     cbzcomic.h \
     jpeg.h \
     png.h \
-    bmp.h
+    bmp.h \
+    thumbnailworker.h
 
 FORMS += \
         mainwindow.ui

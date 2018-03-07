@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <thread>
+#include <QThread>
+#include <QObject>
 #include <QListWidget>
 #include <QFileDialog>
 #include <QImageReader>
@@ -17,9 +20,19 @@
 #include <QMouseEvent>
 #include <QPainter>
 
+
 #include <comic.h>
 #include <cbzcomic.h>
+#include <thumbnailworker.h>
 
+class Thread : public QThread {
+protected:
+    void run() {
+
+    }
+private:
+    QListWidgetItem *qlwi;
+};
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -216,9 +229,45 @@ void MainWindow::openFile()
     closeFile();
     comic = new CBZComic(fileName);
     comic->extract();
+    std::thread t[comic->getPageCount()];
+    for (int i = 0; i < comic->getPageCount(); i++) {
+        QListWidgetItem *itm = new QListWidgetItem(QString::number(i));
+        itm->setIcon(QPixmap(200, 200));
+        //itm->setIcon(QIcon(QPixmap::fromImage(currentImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation)));
+        thumbnailList->setIconSize(QSize(200,200));
+        thumbnailList->addItem(itm);
+        Thread *t = new Thread;
+        t->start(); // start(), not run()!
+/*
+        QThread *thread = new QThread();
+        ThumbnailWorker *tWorker = new ThumbnailWorker();
+        tWorker->moveToThread( thread );
+        QListWidgetItem *it;
+        it->
+        QObject::connect( thread, SIGNAL(started()), tWorker, SLOT(start()) );
+        QObject::connect( tWorker, SIGNAL(finished(const QPixmap &)), this, SLOT(testSlots(const QPixmap &)));
+
+        tWorker->setW(200);
+        tWorker->setH(200);
+        tWorker->setSourceImage(comic->getPages().value(0));
+
+        thread->start();*/
+    }/*
+    for (int i = 0; i < comic->getPageCount(); i++) {
+        //Launch a thread
+        t[i] = std::thread(MainWindow::asyncThumbnail, comic->getPages().value(i), thumbnailList->item(i), 200, 200);
+        t[i].join();
+    }
+    for (int i = 0; i < comic->getPageCount(); ++i) {
+        //Join thread
+
+    }*/
+
+
+
     qInfo() << twoPage << comic->getCurrentPage();
     (twoPage) ? displayTwoImageInPosition(comic->getCurrentPage()) : displayImageInPosition(comic->getCurrentPage());
-    updatePageActions();
+    updatePageActions();    
 }
 
 void MainWindow::closeFile()
@@ -322,10 +371,6 @@ int MainWindow::displayImageInPosition(int position)
     normalSize();
     currentPageLabel->setText(QString::number(position));
 
-    QListWidgetItem *itm = new QListWidgetItem(QString::number(position));
-    itm->setIcon(QIcon(QPixmap::fromImage(currentImage).scaled(100,100,Qt::KeepAspectRatio, Qt::FastTransformation)));
-    thumbnailList->addItem(itm);
-
     return 0;
 }
 
@@ -380,3 +425,19 @@ void MainWindow::adjustScrollBar(QScrollBar *scrollBar, double factor)
 {
     scrollBar->setValue(int(factor * scrollBar->value() + ((factor - 1) * scrollBar->pageStep()/2)));
 }
+
+
+void MainWindow::asyncThumbnail(Image *sourceImage, QListWidgetItem *thumbnailItem, int w, int h)
+{
+    QByteArray ba = sourceImage->getBA();
+    QBuffer qbuff(&ba);
+    QImageReader qimg;
+    qimg.setDecideFormatFromContent(true);
+    qimg.setDevice(&qbuff);
+    qInfo("can read: %s", (qimg.canRead()) ? "yes" : "no");
+    QImage thumbnailImage = qimg.read();
+    thumbnailItem->setIcon(QIcon(QPixmap::fromImage(thumbnailImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation)));
+    //*thumbnailPixmap = QPixmap::fromImage(thumbnailImage).scaled(w,h,Qt::KeepAspectRatio, Qt::FastTransformation);
+}
+
+
