@@ -1,6 +1,7 @@
 #include "thumbnailworker.h"
 #include <QBuffer>
 #include <QImageReader>
+#include <QThread>
 
 
 ThumbnailWorker::ThumbnailWorker(QObject *parent)
@@ -26,6 +27,7 @@ void ThumbnailWorker::setSourceImage(Image *sourceImage)
 }
 void ThumbnailWorker::start()
 {
+    QThread::msleep(5000);
     QByteArray ba = sourceImage->getBA();
     QBuffer qbuff(&ba);
     QImageReader qimg;
@@ -33,6 +35,6 @@ void ThumbnailWorker::start()
     qimg.setDevice(&qbuff);
     qInfo("can read: %s", (qimg.canRead()) ? "yes" : "no");
     QImage thumbnailImage = qimg.read();
-    QPixmap output = QPixmap::fromImage(thumbnailImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation);
-    emit finished( output );
+    thumbnail = QPixmap::fromImage(thumbnailImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation);
+    emit finished( thumbnail );
 }

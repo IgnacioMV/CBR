@@ -37,6 +37,8 @@ private slots:
     void zoomIn();
     void zoomOut();
     void normalSize();
+    void testSlots(const QPixmap &thumbnail) {qInfo() << "asdfasdfasdf"; thumbnailList->item()->setIcon(thumbnail);
+                                             thumbnailList->setIconSize(QSize(200,200));}
 
     void nextPage();
     void previousPage();

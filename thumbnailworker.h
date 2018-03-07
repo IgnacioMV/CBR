@@ -11,6 +11,7 @@ class ThumbnailWorker : public QObject
 public:
     ThumbnailWorker(QObject *parent=0);
     ~ThumbnailWorker(){}
+    QPixmap getThumbnail() { return this->thumbnail; }
 
 public slots:
     void setW(const int w);
@@ -24,6 +25,7 @@ signals:
 private:
     int w, h, i;
     Image *sourceImage;
+    QPixmap thumbnail;
 
 };
 

@@ -21,7 +21,7 @@ int CBZComic::extract() {
         exit(1);
     Image* image;
     while (archive_read_next_header(arch, &entry) == ARCHIVE_OK) {
-        qInfo("extracting %s",archive_entry_pathname(entry));
+        //qInfo("extracting %s",archive_entry_pathname(entry));
 
         int ret;
         const void *buff;
@@ -57,7 +57,7 @@ int CBZComic::extract() {
             continue;
 
         image->setFilename(archive_entry_pathname(entry));
-        qInfo() << "mime.name: " << mime.name();            // Name of the MIME type ("audio/mpeg").
+        //qInfo() << "mime.name: " << mime.name();            // Name of the MIME type ("audio/mpeg").
         image->setBA(ba);
         pages.append(image);
         ba.clear();

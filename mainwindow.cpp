@@ -236,23 +236,23 @@ void MainWindow::openFile()
         //itm->setIcon(QIcon(QPixmap::fromImage(currentImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation)));
         thumbnailList->setIconSize(QSize(200,200));
         thumbnailList->addItem(itm);
-        Thread *t = new Thread;
-        t->start(); // start(), not run()!
-/*
+
+
         QThread *thread = new QThread();
         ThumbnailWorker *tWorker = new ThumbnailWorker();
         tWorker->moveToThread( thread );
-        QListWidgetItem *it;
-        it->
         QObject::connect( thread, SIGNAL(started()), tWorker, SLOT(start()) );
         QObject::connect( tWorker, SIGNAL(finished(const QPixmap &)), this, SLOT(testSlots(const QPixmap &)));
 
         tWorker->setW(200);
         tWorker->setH(200);
+        tWorker->setI(i);
         tWorker->setSourceImage(comic->getPages().value(0));
 
-        thread->start();*/
-    }/*
+        thread->start();
+    }
+
+    /*
     for (int i = 0; i < comic->getPageCount(); i++) {
         //Launch a thread
         t[i] = std::thread(MainWindow::asyncThumbnail, comic->getPages().value(i), thumbnailList->item(i), 200, 200);
