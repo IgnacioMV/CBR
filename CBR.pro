@@ -33,7 +33,8 @@ SOURCES += \
     jpeg.cpp \
     png.cpp \
     bmp.cpp \
-    thumbnailworker.cpp
+    thumbnailworker.cpp \
+    cbzextractworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -43,7 +44,8 @@ HEADERS += \
     jpeg.h \
     png.h \
     bmp.h \
-    thumbnailworker.h
+    thumbnailworker.h \
+    cbzextractworker.h
 
 FORMS += \
         mainwindow.ui

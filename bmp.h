@@ -5,6 +5,7 @@
 
 class BMP: public Image
 {
+    Q_OBJECT
 public:
     BMP();
     QPixmap getPixmapForResolution(int w, int h);

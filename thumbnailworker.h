@@ -4,7 +4,6 @@
 #include <QObject>
 #include "image.h"
 
-Q_DECLARE_METATYPE(QPixmap)
 class ThumbnailWorker : public QObject
 {
     Q_OBJECT
@@ -21,7 +20,7 @@ public slots:
     void start();
 signals:
     void error();
-    void finished(const QPixmap &output);
+    void finished(const QPixmap &output, const int &i);
 private:
     int w, h, i;
     Image *sourceImage;

@@ -1,19 +1,33 @@
-#include <cbzcomic.h>
-#include <comic.h>
+#include "cbzextractworker.h"
+#include <archive.h>
+#include <archive_entry.h>
+#include <QMimeDatabase>
 #include <image.h>
 #include <bmp.h>
 #include <jpeg.h>
 #include <png.h>
-#include <cbzextractworker.h>
-#include <QMainWindow>
+#include <QDebug>
 
-#include <QThread>
+CBZExtractWorker::CBZExtractWorker()
+{
 
-int CBZComic::extract(const QMainWindow *mainWindow) {
-    /*
+}
+
+void CBZExtractWorker::setFilename(const QString filename)
+{
+    this->filename = filename;
+}
+
+void CBZExtractWorker::start()
+{
+    if (filename == NULL) {
+        emit finished();
+        return;
+    }
+
     QByteArray ba;
-    int maxPage = 0;
-    QList<Image*> pages;
+    //int maxPage = 0;
+    //QList<Image*> pages;
 
     struct archive *arch;
     struct archive_entry *entry;
@@ -21,12 +35,12 @@ int CBZComic::extract(const QMainWindow *mainWindow) {
     arch = archive_read_new();
     archive_read_support_filter_all(arch);
     archive_read_support_format_all(arch);
-    r = archive_read_open_filename(arch, Comic::getFilename().toStdString().c_str(), 10240);
+    r = archive_read_open_filename(arch, filename.toStdString().c_str(), 10240);
     if (r != ARCHIVE_OK)
         exit(1);
     Image* image;
     while (archive_read_next_header(arch, &entry) == ARCHIVE_OK) {
-        //qInfo("extracting %s",archive_entry_pathname(entry));
+        qInfo("extracting %s",archive_entry_pathname(entry));
 
         int ret;
         const void *buff;
@@ -47,15 +61,15 @@ int CBZComic::extract(const QMainWindow *mainWindow) {
         //qInfo() << "mime.preferredSuffix: " << mime.preferredSuffix(); // Preferred suffix for this MIME type ("mp3").com
 
         if (mime.name().indexOf("image/png") != -1) {
-            maxPage += 1;
+            //maxPage += 1;
             image = new PNG();
         }
         else if (mime.name().indexOf("image/jpeg") != -1){
-            maxPage += 1;
+            //maxPage += 1;
             image = new JPEG();
         }
         else if (mime.name().indexOf("image/bmp") != -1){
-            maxPage += 1;
+            //maxPage += 1;
             image = new BMP();
         }
         else
@@ -64,42 +78,23 @@ int CBZComic::extract(const QMainWindow *mainWindow) {
         image->setFilename(archive_entry_pathname(entry));
         //qInfo() << "mime.name: " << mime.name();            // Name of the MIME type ("audio/mpeg").
         image->setBA(ba);
-        pages.append(image);
+        emit pageExtracted(image);
+        emit pageReady();
+
+        //pages.append(image);
         ba.clear();
     }
-    setPageCount(maxPage);
-    setPages(pages);
+    //setPageCount(maxPage);
+    //setPages(pages);
     archive_read_data_skip(arch);
     r = archive_read_free(arch);
     if (r != ARCHIVE_OK)
         exit(1);
+
+    emit finished();
     //for(int i = 0; i < pages.size(); i++) {
     //    qInfo() << "filename: " << getPages().value(i).getFilename();
     //}
     //sortPages();
-    */
-
-    QThread *thread = new QThread();
-    CBZExtractWorker *cbzWorker = new CBZExtractWorker();
-    cbzWorker->moveToThread( thread );
-    QObject::connect( thread, SIGNAL(started()), cbzWorker, SLOT(start()) );
-    QObject::connect( cbzWorker, SIGNAL(pageExtracted(Image *)), this, SLOT(addPage(Image *)));
-    QObject::connect( cbzWorker, SIGNAL(pageReady()), mainWindow, SLOT(pageReady()));
-    QObject::connect( cbzWorker, SIGNAL(finished()), this, SLOT(finishedExtraction()));
-    QObject::connect( cbzWorker, SIGNAL(finished()), mainWindow, SLOT(finishedExtraction()));
-
-    cbzWorker->setFilename(getFilename());
-
-    thread->start();
-
-    return 0;
+    //return 0;
 }
-/*
-void CBZComic::addPage(Image *img)
-{
-    setPages(getPages().append(img));
-    //getpages.append(&img);
-    setPageCount(getPageCount()+1);
-    //pageCount += 1;
-}
-*/

@@ -5,6 +5,7 @@
 
 class PNG: public Image
 {
+    Q_OBJECT
 public:
     PNG();
     QPixmap getPixmapForResolution(int w, int h);

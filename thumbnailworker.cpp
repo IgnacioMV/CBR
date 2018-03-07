@@ -2,6 +2,7 @@
 #include <QBuffer>
 #include <QImageReader>
 #include <QThread>
+#include <QDebug>
 
 
 ThumbnailWorker::ThumbnailWorker(QObject *parent)
@@ -27,14 +28,16 @@ void ThumbnailWorker::setSourceImage(Image *sourceImage)
 }
 void ThumbnailWorker::start()
 {
-    QThread::msleep(5000);
+    qsrand(i);
+    int rand = qrand() % ((50 + 1) - 50*i) + 50*i;
+    qInfo() << "sleep: " << rand;
+    QThread::msleep(rand);
     QByteArray ba = sourceImage->getBA();
     QBuffer qbuff(&ba);
     QImageReader qimg;
     qimg.setDecideFormatFromContent(true);
     qimg.setDevice(&qbuff);
-    qInfo("can read: %s", (qimg.canRead()) ? "yes" : "no");
     QImage thumbnailImage = qimg.read();
     thumbnail = QPixmap::fromImage(thumbnailImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation);
-    emit finished( thumbnail );
+    emit finished( thumbnail, this->i );
 }

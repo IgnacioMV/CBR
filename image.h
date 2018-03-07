@@ -3,8 +3,9 @@
 
 #include <QPixmap>
 
-class Image
+class Image : public QObject
 {
+    Q_OBJECT
 public:
     Image() = default;
     Image(const Image& image) = default;

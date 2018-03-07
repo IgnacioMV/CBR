@@ -5,6 +5,7 @@
 
 class JPEG: public Image
 {
+    Q_OBJECT
 public:
     JPEG();
     QPixmap getPixmapForResolution(int w, int h);

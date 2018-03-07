@@ -4,13 +4,18 @@
 #include <QString>
 #include <QList>
 #include <image.h>
+#include <QMainWindow>
 
-class Comic
+class Comic: public QObject
 {
+    Q_OBJECT
+private slots:
+    void addPage(Image *img) { this->pages.append(img); this->pageCount += 1; }
+
 public:
     Comic() = default;
     Comic(const Comic& comic) = default;
-    explicit Comic(QString filename) : filename(filename), pageCount(-1), currentPage(0) {}
+    explicit Comic(QString filename) : filename(filename), pageCount(0), currentPage(0) {}
     QString getFilename() { return this->filename; }
     QList<Image*> getPages() { return this->pages; }
     Image* getPageInPosition(int position) { return this->pages.value(position);}
@@ -20,7 +25,8 @@ public:
     void setCurrentPage(int currentPage) { this->currentPage = currentPage; }
     void setPageCount(int pageCount) { this->pageCount = pageCount; }
     void sortPages() { qSort(this->pages.begin(), this->pages.end(), compareImages); }
-    virtual int extract() = 0;
+    virtual int extract(const QMainWindow *mainWindow) = 0;
+
     virtual ~Comic(){
         for (auto img : this->pages)
             delete img;

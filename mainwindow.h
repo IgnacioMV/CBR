@@ -6,6 +6,7 @@
 #include <QScrollArea>
 #include <QPushButton>
 #include <QListWidget>
+#include <QThread>
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -13,6 +14,7 @@
 #include <comic.h>
 #include <cbzcomic.h>
 #include <image.h>
+#include <thumbnailworker.h>
 
 namespace Ui {
 class MainWindow;
@@ -26,6 +28,44 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+    void pageReady() {
+        updatePageActions();
+        if (firstPageShown)
+            return;
+        qInfo() << "first page size: " << comic->getPageCount();
+        (twoPage) ? displayTwoImageInPosition(0) : displayImageInPosition(0);
+        updatePageActions();
+        firstPageShown = true;
+    }
+    void finishedExtraction() {
+        QPixmap emptyThumbnail(200, 200);
+        emptyThumbnail.fill("grey");
+
+        for (int i = 0; i < comic->getPageCount(); i++) {
+            QListWidgetItem *itm = new QListWidgetItem(QString::number(i));
+            itm->setTextAlignment(Qt::AlignCenter);
+            itm->setSizeHint(QSize(200, 200));
+            itm->setIcon(emptyThumbnail);
+            //itm->setIcon(QIcon(QPixmap::fromImage(currentImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation)));
+            thumbnailList->setIconSize(QSize(150,150));
+            thumbnailList->addItem(itm);
+
+            QThread *thread = new QThread();
+            ThumbnailWorker *tWorker = new ThumbnailWorker();
+            tWorker->moveToThread( thread );
+            QObject::connect( thread, SIGNAL(started()), tWorker, SLOT(start()) );
+            QObject::connect( tWorker, SIGNAL(finished(const QPixmap &, const int &)), this, SLOT(setThumbnail(const QPixmap &, const int &)));
+
+            tWorker->setW(150);
+            tWorker->setH(150);
+            tWorker->setI(i);
+            tWorker->setSourceImage(comic->getPages().value(i));
+
+            thread->start();
+        }
+    }
+
 private slots:
     void createActions();
     void enablePageActions();
@@ -37,8 +77,9 @@ private slots:
     void zoomIn();
     void zoomOut();
     void normalSize();
-    void testSlots(const QPixmap &thumbnail) {qInfo() << "asdfasdfasdf"; thumbnailList->item()->setIcon(thumbnail);
-                                             thumbnailList->setIconSize(QSize(200,200));}
+
+    void setThumbnail(const QPixmap &thumbnail, const int i);
+    void onThumbnailDoubleClick(QListWidgetItem *item);
 
     void nextPage();
     void previousPage();
@@ -53,10 +94,10 @@ private:
     int displayImageInPosition(int position);
     int displayTwoImageInPosition(int position);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
-    static void asyncThumbnail(Image *sourceImage, QListWidgetItem *thumbnailItem, int w, int h);
 
     double scaleFactor;
     bool twoPage;
+    bool firstPageShown;
     Ui::MainWindow *ui;
     QListWidget *thumbnailList;
     QLabel *imageLabel;
