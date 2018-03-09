@@ -72,6 +72,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(firstPageButton,SIGNAL(clicked()), this, SLOT(firstPage()));
     QObject::connect(lastPageButton,SIGNAL(clicked()), this, SLOT(lastPage()));
 
+    nextPageButton->setShortcut(Qt::Key_PageDown);
+    previousPageButton->setShortcut(Qt::Key_PageUp);
+    firstPageButton->setShortcut(Qt::Key_Home);
+    lastPageButton->setShortcut(Qt::Key_End);
+
     btnLayout->addWidget(firstPageButton);
     btnLayout->addWidget(previousPageButton);
     btnLayout->addWidget(currentPageLabel);
@@ -217,7 +222,7 @@ void MainWindow::openFile()
     comic->extract(this);
     QPixmap emptyThumbnail(200, 200);
     emptyThumbnail.fill("grey");
-
+/*
     for (int i = 0; i < comic->getPageCount(); i++) {
         QListWidgetItem *itm = new QListWidgetItem(QString::number(i));
         itm->setTextAlignment(Qt::AlignCenter);
@@ -240,8 +245,9 @@ void MainWindow::openFile()
         tWorker->setSourceImage(comic->getPages().value(i));
 
         thread->start();
-    }
 
+    }
+*/
     qInfo() << twoPage << comic->getCurrentPage();
     (twoPage) ? displayTwoImageInPosition(comic->getCurrentPage()) : displayImageInPosition(comic->getCurrentPage());
     updatePageActions();    
@@ -253,6 +259,7 @@ void MainWindow::closeFile()
     delete comic;
     comic = NULL;
     imageLabel->setPixmap(QPixmap());
+    thumbnailList->clear();
     qInfo() << "file closed";
     updatePageActions();
 }

@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QListWidget>
 #include <QThread>
+#include <QPixmap>
 
 #include <archive.h>
 #include <archive_entry.h>
@@ -55,7 +56,8 @@ public slots:
             ThumbnailWorker *tWorker = new ThumbnailWorker();
             tWorker->moveToThread( thread );
             QObject::connect( thread, SIGNAL(started()), tWorker, SLOT(start()) );
-            QObject::connect( tWorker, SIGNAL(finished(const QPixmap &, const int &)), this, SLOT(setThumbnail(const QPixmap &, const int &)));
+            QObject::connect( tWorker, SIGNAL(thumbnailCreated(const QPixmap &, const int &)), this, SLOT(setThumbnail(const QPixmap &, const int &)));
+            QObject::connect( tWorker, SIGNAL(finished()), thread, SLOT(&QThread::quit));
 
             tWorker->setW(150);
             tWorker->setH(150);
@@ -95,9 +97,16 @@ private:
     int displayTwoImageInPosition(int position);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
 
+    enum DisplayMode { FitToWindow, FitToWidth, FitToHeight, Original };
+    Q_ENUM(DisplayMode)
     double scaleFactor;
     bool twoPage;
     bool firstPageShown;
+    QPixmap nextPixmap;
+    QPixmap previousPixmap;
+    QPixmap lastPixmap;
+    QPixmap firstPixmap;
+
     Ui::MainWindow *ui;
     QListWidget *thumbnailList;
     QLabel *imageLabel;

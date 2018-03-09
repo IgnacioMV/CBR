@@ -87,6 +87,8 @@ int CBZComic::extract(const QMainWindow *mainWindow) {
     QObject::connect( cbzWorker, SIGNAL(pageReady()), mainWindow, SLOT(pageReady()));
     QObject::connect( cbzWorker, SIGNAL(finished()), this, SLOT(finishedExtraction()));
     QObject::connect( cbzWorker, SIGNAL(finished()), mainWindow, SLOT(finishedExtraction()));
+    QObject::connect( cbzWorker, SIGNAL(finished()), thread, SLOT(&QThread::quit));
+    //connect(workerObject, &MyWorkerClass::Finished, workerThread, &QThread::quit);
 
     cbzWorker->setFilename(getFilename());
 

@@ -15,7 +15,7 @@ public:
     QByteArray getBA() { return this->ba; }
     virtual QPixmap getPixmapForResolution(int w, int h) = 0;
     virtual QPixmap getThumbnail() = 0;
-    virtual ~Image(){}
+    virtual ~Image(){ ba.clear(); }
 
 private:
     QString filename;

@@ -10,6 +10,11 @@ ThumbnailWorker::ThumbnailWorker(QObject *parent)
 
 }
 
+ThumbnailWorker::~ThumbnailWorker()
+{
+    delete &thumbnail;
+}
+
 void ThumbnailWorker::setW(const int w)
 {
     this->w = w;
@@ -28,10 +33,13 @@ void ThumbnailWorker::setSourceImage(Image *sourceImage)
 }
 void ThumbnailWorker::start()
 {
+    if (sourceImage == NULL)
+        return;
     qsrand(i);
-    int rand = qrand() % ((50 + 1) - 50*i) + 50*i;
+    int rand = qrand() % ((25 + 1) - 25*i) + 25*i;
     qInfo() << "sleep: " << rand;
     QThread::msleep(rand);
+
     QByteArray ba = sourceImage->getBA();
     QBuffer qbuff(&ba);
     QImageReader qimg;
@@ -39,5 +47,6 @@ void ThumbnailWorker::start()
     qimg.setDevice(&qbuff);
     QImage thumbnailImage = qimg.read();
     thumbnail = QPixmap::fromImage(thumbnailImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation);
-    emit finished( thumbnail, this->i );
+    emit thumbnailCreated( thumbnail, this->i );
+    emit finished();
 }

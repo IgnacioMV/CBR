@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QList>
+#include <QDebug>
 #include <image.h>
 #include <QMainWindow>
 
@@ -10,7 +11,8 @@ class Comic: public QObject
 {
     Q_OBJECT
 private slots:
-    void addPage(Image *img) { this->pages.append(img); this->pageCount += 1; }
+    void addPage(Image *img) { if (this == NULL) qInfo() << "null comic";
+                this->pages.append(img); this->pageCount += 1; }
 
 public:
     Comic() = default;
@@ -24,12 +26,13 @@ public:
     int getCurrentPage() { return this->currentPage; }
     void setCurrentPage(int currentPage) { this->currentPage = currentPage; }
     void setPageCount(int pageCount) { this->pageCount = pageCount; }
-    void sortPages() { qSort(this->pages.begin(), this->pages.end(), compareImages); }
+    //void sortPages() { qSort(this->pages.begin(), this->pages.end(), compareImages); }
     virtual int extract(const QMainWindow *mainWindow) = 0;
 
     virtual ~Comic(){
-        for (auto img : this->pages)
+        for (auto img : this->pages) {
             delete img;
+        }
     }
 
 private:
