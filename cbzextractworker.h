@@ -2,7 +2,7 @@
 #define CBZEXTRACTWORKER_H
 
 #include <QObject>
-#include <image.h>
+#include "image.h"
 
 class CBZExtractWorker : public QObject
 {
@@ -10,6 +10,8 @@ class CBZExtractWorker : public QObject
 public:
     CBZExtractWorker();
     ~CBZExtractWorker(){}
+    void setRun(bool run) { this->run = run; }
+    //bool getRun(bool run) { return this->run; }
 public slots:
     void setFilename(const QString filename);
     void start();
@@ -20,6 +22,7 @@ signals:
     void finished();
 private:
     QString filename;
+    bool run;
 };
 
 #endif // CBZEXTRACTWORKER_H

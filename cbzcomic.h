@@ -6,11 +6,12 @@
 #include <QByteArray>
 #include <QMimeDatabase>
 #include <QMimeType>
-#include <image.h>
+#include "image.h"
 #include <QDebug>
-#include <comic.h>
+#include "comic.h"
 #include <QMainWindow>
-
+#include "cbzextractworker.h"
+#include <QObject>
 
 class CBZComic: public Comic
 {
@@ -24,8 +25,11 @@ public:
     CBZComic(const CBZComic &cbzcomic) = default;
     explicit CBZComic(QString filename) : Comic(filename) {}
     int extract(const QMainWindow *mainWindow);
-    //void addPage(Image *img) { this->pages.append(img); }
-    ~CBZComic(){}
+    void stopExtracting();
+    ~CBZComic(){ delete cbzWorker; }
+
+private:
+    CBZExtractWorker *cbzWorker;
 };
 
 #endif // CBZCOMIC_H

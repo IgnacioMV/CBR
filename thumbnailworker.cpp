@@ -4,8 +4,7 @@
 #include <QThread>
 #include <QDebug>
 
-
-ThumbnailWorker::ThumbnailWorker(QObject *parent)
+ThumbnailWorker::ThumbnailWorker()
 {
 
 }
@@ -35,18 +34,12 @@ void ThumbnailWorker::start()
 {
     if (sourceImage == NULL)
         return;
-    qsrand(i);
-    int rand = qrand() % ((25 + 1) - 25*i) + 25*i;
-    qInfo() << "sleep: " << rand;
-    QThread::msleep(rand);
+    //qsrand(i);
+    //int rand = qrand() % ((25 + 1) - 25*i) + 25*i;
+    //qInfo() << "sleep: " << rand;
+    //QThread::msleep(rand);
 
-    QByteArray ba = sourceImage->getBA();
-    QBuffer qbuff(&ba);
-    QImageReader qimg;
-    qimg.setDecideFormatFromContent(true);
-    qimg.setDevice(&qbuff);
-    QImage thumbnailImage = qimg.read();
-    thumbnail = QPixmap::fromImage(thumbnailImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation);
+    QPixmap thumbnail = sourceImage->getThumbnail();
     emit thumbnailCreated( thumbnail, this->i );
     emit finished();
 }

@@ -8,14 +8,17 @@
 #include <QListWidget>
 #include <QThread>
 #include <QPixmap>
+#include <QList>
+#include <QThread>
 
 #include <archive.h>
 #include <archive_entry.h>
 
-#include <comic.h>
-#include <cbzcomic.h>
-#include <image.h>
-#include <thumbnailworker.h>
+#include "comic.h"
+#include "cbzcomic.h"
+#include "image.h"
+#include "thumbnailworker.h"
+#include "displaymode.h"
 
 namespace Ui {
 class MainWindow;
@@ -27,46 +30,17 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+    DisplayMode getDisplayMode() { return this->displayMode; }
     ~MainWindow();
 
 public slots:
-    void pageReady() {
-        updatePageActions();
-        if (firstPageShown)
-            return;
-        qInfo() << "first page size: " << comic->getPageCount();
-        (twoPage) ? displayTwoImageInPosition(0) : displayImageInPosition(0);
-        updatePageActions();
-        firstPageShown = true;
-    }
-    void finishedExtraction() {
-        QPixmap emptyThumbnail(200, 200);
-        emptyThumbnail.fill("grey");
-
-        for (int i = 0; i < comic->getPageCount(); i++) {
-            QListWidgetItem *itm = new QListWidgetItem(QString::number(i));
-            itm->setTextAlignment(Qt::AlignCenter);
-            itm->setSizeHint(QSize(200, 200));
-            itm->setIcon(emptyThumbnail);
-            //itm->setIcon(QIcon(QPixmap::fromImage(currentImage).scaled(200,200,Qt::KeepAspectRatio, Qt::FastTransformation)));
-            thumbnailList->setIconSize(QSize(150,150));
-            thumbnailList->addItem(itm);
-
-            QThread *thread = new QThread();
-            ThumbnailWorker *tWorker = new ThumbnailWorker();
-            tWorker->moveToThread( thread );
-            QObject::connect( thread, SIGNAL(started()), tWorker, SLOT(start()) );
-            QObject::connect( tWorker, SIGNAL(thumbnailCreated(const QPixmap &, const int &)), this, SLOT(setThumbnail(const QPixmap &, const int &)));
-            QObject::connect( tWorker, SIGNAL(finished()), thread, SLOT(&QThread::quit));
-
-            tWorker->setW(150);
-            tWorker->setH(150);
-            tWorker->setI(i);
-            tWorker->setSourceImage(comic->getPages().value(i));
-
-            thread->start();
-        }
-    }
+    void pageReady();
+    //void previousPageReady();
+    //void currentPageReady();
+    //void nextPageReady();
+    void pixmapReady(const QImage &qimage, const QPixmap &pixmap, const int i);
+    void zoomReady(const QPixmap &pixmap);
+    void finishedExtraction();
 
 private slots:
     void createActions();
@@ -80,6 +54,14 @@ private slots:
     void zoomOut();
     void normalSize();
 
+    void fitWidth();
+    void fitHeight();
+    void fitToWindow();
+    void fitOriginal();
+
+    void downsamplingMode();
+    void bilinearMode();
+
     void setThumbnail(const QPixmap &thumbnail, const int i);
     void onThumbnailDoubleClick(QListWidgetItem *item);
 
@@ -90,20 +72,34 @@ private slots:
 
 private:
     Comic *comic;
+    QList<QThread*> thumbnailThreads;
 
     void scaleImage(double factor);
     //void resizeEvent(QResizeEvent* resizeEvent);
     int displayImageInPosition(int position);
     int displayTwoImageInPosition(int position);
     void adjustScrollBar(QScrollBar *scrollBar, double factor);
+    void asyncResizeImageForAlgorithm(int i, int width, int height, ScalingAlgorithms algorithm);
+    void asyncZoomForAlgorithm(int width, int height, ScalingAlgorithms algorithm);
+    void processNextPixmap();
+    void processPreviousPixmap();
+    void setViewModeIcon(QAction *act);
 
-    enum DisplayMode { FitToWindow, FitToWidth, FitToHeight, Original };
-    Q_ENUM(DisplayMode)
+    bool comicOpened;
     double scaleFactor;
     bool twoPage;
     bool firstPageShown;
-    QPixmap nextPixmap;
+
+    QImage previousImage;
+    QImage currentImage;
+    QImage nextImage;
+    QImage firstImage;
+    QImage lastImage;
+
+    QPixmap zoomPixmap;
     QPixmap previousPixmap;
+    QPixmap currentPixmap;
+    QPixmap nextPixmap;
     QPixmap lastPixmap;
     QPixmap firstPixmap;
 
@@ -111,7 +107,6 @@ private:
     QListWidget *thumbnailList;
     QLabel *imageLabel;
     QScrollArea *scrollArea;
-    QImage currentImage;
     QPushButton *firstPageButton;
     QPushButton *previousPageButton;
     QPushButton *nextPageButton;
@@ -119,11 +114,21 @@ private:
     QLabel *currentPageLabel;
 
     int hb0, vb0, x0, y0, x, y;
+    DisplayMode displayMode;
+    ScalingAlgorithms scalingAlgorithm;
 
     QAction *twoPagesAct;
     QAction *zoomInAct;
     QAction *zoomOutAct;
     QAction *normalSizeAct;
+
+    QAction *fitWidthAct;
+    QAction *fitHeightAct;
+    QAction *fitToWindowAct;
+    QAction *originalAct;
+
+    QAction *downsamplingAct;
+    QAction *bilinearAct;
 
     bool eventFilter(QObject *obj, QEvent *event);
 };

@@ -8,7 +8,7 @@ class ThumbnailWorker : public QObject
 {
     Q_OBJECT
 public:
-    ThumbnailWorker(QObject *parent=0);
+    ThumbnailWorker();
     ~ThumbnailWorker();
     QPixmap getThumbnail() { return this->thumbnail; }
 

@@ -1,14 +1,16 @@
 #ifndef BMP_H
 #define BMP_H
 
-#include <image.h>
+#include "image.h"
+#include <QMainWindow>
 
 class BMP: public Image
 {
     Q_OBJECT
 public:
     BMP();
-    QPixmap getPixmapForResolution(int w, int h);
+    QPixmap getPixmapForSize(int w, int h);
+    void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i, ScalingAlgorithms algorithm, DisplayMode dispayMode);
     QPixmap getThumbnail();
     ~BMP(){}
 };

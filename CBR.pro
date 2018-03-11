@@ -34,7 +34,12 @@ SOURCES += \
     png.cpp \
     bmp.cpp \
     thumbnailworker.cpp \
-    cbzextractworker.cpp
+    cbzextractworker.cpp \
+    scaleimageworker.cpp \
+    image.cpp \
+    downsamplingworker.cpp \
+    bilinearworker.cpp \
+    customconvolutionalworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -45,7 +50,13 @@ HEADERS += \
     png.h \
     bmp.h \
     thumbnailworker.h \
-    cbzextractworker.h
+    cbzextractworker.h \
+    scaleimageworker.h \
+    downsamplingworker.h \
+    bilinearworker.h \
+    customconvolutionalworker.h \
+    scalingalgorithms.h \
+    displaymode.h
 
 FORMS += \
         mainwindow.ui
