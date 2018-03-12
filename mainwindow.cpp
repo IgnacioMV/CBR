@@ -222,7 +222,7 @@ void MainWindow::updatePageActions()
 void MainWindow::openFile()
 {
 
-    QString fileName = QFileDialog::getOpenFileName(this, "Open the file", "/home/nacho/CBR_old", tr("Comic files (*.cbr *.cbz)"));
+    QString fileName = QFileDialog::getOpenFileName(this, "Open the file", "/home", tr("Comic files (*.cbr *.cbz)"));
     if(fileName.isEmpty() || fileName.isNull()){
         return;
     }
