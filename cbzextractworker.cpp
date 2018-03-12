@@ -10,20 +10,9 @@
 #include "png.h"
 #include <QDebug>
 
-CBZExtractWorker::CBZExtractWorker()
-{
-    this->run = true;
-}
-
-void CBZExtractWorker::setFilename(const QString filename)
-{
-    this->filename = filename;
-    this->run = true;
-}
-
 void CBZExtractWorker::start()
 {
-    if (filename == NULL) {
+    if (getFilename() == NULL) {
         emit finished();
         return;
     }
@@ -37,11 +26,11 @@ void CBZExtractWorker::start()
     arch = archive_read_new();
     archive_read_support_filter_all(arch);
     archive_read_support_format_all(arch);
-    r = archive_read_open_filename(arch, filename.toStdString().c_str(), 10240);
+    r = archive_read_open_filename(arch, getFilename().toStdString().c_str(), 10240);
     if (r != ARCHIVE_OK)
         exit(1);
     Image* image;
-    while (archive_read_next_header(arch, &entry) == ARCHIVE_OK && run) {
+    while (archive_read_next_header(arch, &entry) == ARCHIVE_OK && getRun()) {
 
         int ret;
         const void *buff;

@@ -20,13 +20,11 @@ public:
     void setW(int w);
     void setH(int h);
     void setI(int i);
-    void setDisplayMode(DisplayMode dm);
     Image* getSourceImage1() { return this->sourceImage1; }
     Image* getSourceImage2() { return this->sourceImage2; }
     int getW() { return w; }
     int getH() { return h; }
     int getI() { return i; }
-    DisplayMode getDisplayMode() { return displayMode; }
     ~ScaleImageWorker();
 
 public slots:
@@ -44,7 +42,6 @@ private:
     int w, h, i;
     Image *sourceImage1;
     Image *sourceImage2;
-    DisplayMode displayMode;
 };
 
 #endif // SCALEIMAGEWORKER_H

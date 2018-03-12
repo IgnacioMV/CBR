@@ -44,7 +44,3 @@ void ScaleImageWorker::setI(int i)
     this->i = i;
 }
 
-void ScaleImageWorker::setDisplayMode(DisplayMode dm)
-{
-    this->displayMode = dm;
-}

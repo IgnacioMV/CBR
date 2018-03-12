@@ -649,7 +649,6 @@ void MainWindow::asyncResizeImageForAlgorithm(int i, int width, int height, Scal
     siWorker->setW(width);
     siWorker->setH(height);
     siWorker->setI(i);
-    siWorker->setDisplayMode(this->getDisplayMode());
 
     if (i == (comic->getPageCount()-1) || i == 0 || comic->getPages().value(i)->isDoublePage() || !twoPage){
         siWorker->setSourceImages(comic->getPages().value(i), NULL);
@@ -679,7 +678,6 @@ void MainWindow::asyncZoomForAlgorithm(int width, int height, ScalingAlgorithms 
     siWorker->setW(width);
     siWorker->setH(height);
     siWorker->setI(0);
-    siWorker->setDisplayMode(this->getDisplayMode());
     siWorker->setSourceImages(img, nullptr);
     thread->start();
 }

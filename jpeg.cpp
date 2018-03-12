@@ -38,7 +38,6 @@ void JPEG::getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, in
     siWorker->setW(w);
     siWorker->setH(h);
     siWorker->setI(i);
-    siWorker->setDisplayMode(displayMode);
     siWorker->setSourceImages(this, nullptr);
     thread->start();
 }

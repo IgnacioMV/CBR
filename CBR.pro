@@ -54,7 +54,8 @@ HEADERS += \
     downsamplingworker.h \
     bilinearworker.h \
     scalingalgorithms.h \
-    displaymode.h
+    displaymode.h \
+    extractworker.h
 
 FORMS += \
         mainwindow.ui

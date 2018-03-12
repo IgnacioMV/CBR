@@ -36,7 +36,6 @@ void BMP::getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int
     siWorker->setW(w);
     siWorker->setH(h);
     siWorker->setI(i);
-    siWorker->setDisplayMode(displayMode);
     siWorker->setSourceImages(this, nullptr);
     thread->start();
 }

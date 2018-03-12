@@ -1,20 +1,17 @@
 #ifndef CBZEXTRACTWORKER_H
 #define CBZEXTRACTWORKER_H
 
-#include <QObject>
+#include "extractworker.h"
 #include "image.h"
 
-class CBZExtractWorker : public QObject
+class CBZExtractWorker : public ExtractWorker
 {
     Q_OBJECT
 public:
-    CBZExtractWorker();
+    CBZExtractWorker(): ExtractWorker(){}
     ~CBZExtractWorker(){}
-    void setRun(bool run) { this->run = run; }
-    //bool getRun(bool run) { return this->run; }
 public slots:
-    void setFilename(const QString filename);
-    void start();
+    void start();/*
 signals:
     void error();
     void pageExtracted(Image *img);
@@ -22,7 +19,7 @@ signals:
     void finished();
 private:
     QString filename;
-    bool run;
+    bool run;*/
 };
 
 #endif // CBZEXTRACTWORKER_H
