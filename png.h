@@ -11,7 +11,7 @@ class PNG: public Image
 public:
     PNG();
     QPixmap getPixmapForSize(int w, int h);
-    void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i, ScalingAlgorithms algorithm, DisplayMode dispayMode);
+    void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i, ScalingAlgorithms algorithm, DisplayMode displayMode);
     QPixmap getThumbnail();
     ~PNG(){}
 };

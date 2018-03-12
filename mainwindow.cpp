@@ -219,17 +219,6 @@ void MainWindow::updatePageActions()
     currentPageLabel->setText(QString::number(comic->getCurrentPage()));
 }
 
-/*
-void MainWindow::resizeEvent(QResizeEvent* event)
-{
-    qInfo() << "resizeEvent";
-    QMainWindow::resizeEvent(event);
-    int w = scrollArea->width();
-    int h = scrollArea->height();
-    qInfo() << "w: " << w << ", h: " << h;
-    imageLabel->setPixmap(QPixmap::fromImage(currentImage).scaled(w,h,Qt::KeepAspectRatio));
-}
-*/
 void MainWindow::openFile()
 {
 
@@ -237,7 +226,6 @@ void MainWindow::openFile()
     if(fileName.isEmpty() || fileName.isNull()){
         return;
     }
-    //qInfo() << comic;
     if (comicOpened) {
         closeFile();
     }
@@ -291,10 +279,8 @@ void MainWindow::twoPages()
 {
     int currentPage = comic->getCurrentPage();
     twoPage = twoPagesAct->isChecked();
-    qInfo() << "POSITION - " << comic->getCurrentPage();
     if (comic != NULL)
         (twoPage) ? displayTwoImageInPosition(currentPage) : displayImageInPosition(currentPage);
-    qInfo() << "POSITION - " << comic->getCurrentPage();
     processNextPixmap();
     processPreviousPixmap();
 }
@@ -373,10 +359,6 @@ void MainWindow::setViewModeIcon(QAction *act) {
 
 void MainWindow::normalSize()
 {
-    int w = scrollArea->width();
-    int h = scrollArea->height();
-    //int currentPage = comic->getCurrentPage();
-    //currentPixmap = comic->getPages().value(currentPage)->getPixmapForSize(w, h);
     imageLabel->setPixmap(currentPixmap);
     imageLabel->adjustSize();
     zoomInAct->setEnabled(true);
@@ -388,10 +370,8 @@ void MainWindow::scaleImage(double factor)
 {
     Q_ASSERT(imageLabel->pixmap());
     scaleFactor *= factor;
-    //imageLabel->resize(scaleFactor * imageLabel->pixmap()->size());
     int w = scrollArea->width();
     int h = scrollArea->height();
-    qInfo() << "w: " << w;
     imageLabel->setPixmap(currentPixmap.scaled(w*scaleFactor, h*scaleFactor));
     imageLabel->adjustSize();
     asyncZoomForAlgorithm(w*scaleFactor, h*scaleFactor, scalingAlgorithm);
@@ -417,11 +397,9 @@ void MainWindow::nextPage()
     int nextPosition = currentPosition;
     if (twoPage)
         if (comic->getPages().value(currentPosition)->isDoublePage()) {
-            qInfo() << "current page is double page";
             nextPosition = currentPosition+1;
         }
         else if (comic->getPages().value(currentPosition)->isLeftPage()) {
-            qInfo() << "current page is NOT double page";
             nextPosition = nextPosition+2;
         }
         else {
@@ -432,13 +410,11 @@ void MainWindow::nextPage()
     }
     if (nextPosition > (comic->getPageCount()-1))
         nextPosition = comic->getPageCount()-1;
-    qInfo() << "nextPosition" << nextPosition;
     comic->setCurrentPage(nextPosition);
 
     imageLabel->setPixmap(currentPixmap);
     imageLabel->adjustSize();
     processNextPixmap();
-    //displayImageInPosition(nextPosition);
     updatePageActions();
 }
 
@@ -468,24 +444,12 @@ void MainWindow::previousPage()
 
     if (nextPosition < 0)
         nextPosition = 0;
-    qInfo() << "nextPosition" << nextPosition;
     comic->setCurrentPage(nextPosition);
 
     imageLabel->setPixmap(currentPixmap);
     imageLabel->adjustSize();
     processPreviousPixmap();
     updatePageActions();
-
-    /*
-    int step = (twoPage) ? -2 : -1;
-    int nextPosition = comic->getCurrentPage()+step;
-    (twoPage) ? displayTwoImageInPosition(nextPosition) : displayImageInPosition(nextPosition);
-    nextPixmap = currentPixmap;
-    currentPixmap = previousPixmap;
-    previousPixmap = QPixmap();
-    nextPosition = (nextPosition+step < 0) ? 0 : nextPosition+step;
-    comic->getPages().value(nextPosition)->getPixmapForSizeAndAlgorithm(this, scrollArea->width(), scrollArea->height(), nextPosition, ScalingAlgorithms::Bilinear, displayMode);
-    updatePageActions();*/
 }
 
 void MainWindow::firstPage()
@@ -544,8 +508,6 @@ int MainWindow::displayImageInPosition(int position)
         //normalSize();
     }
     comic->setCurrentPage(position);
-    //Image* nextImage = comic->getPageInPosition(position);
-    //qInfo() << "appended filename: " << nextImage->getFilename();
 
     currentPageLabel->setText(QString::number(position));
 
@@ -563,7 +525,6 @@ int MainWindow::displayTwoImageInPosition(int position)
 
     Image* nextImage1 = comic->getPageInPosition(position);
     Image* nextImage2;
-    qInfo() << nextImage1->isLeftPage();
     if (nextImage1->isDoublePage())
         return 1;
     else {
@@ -576,8 +537,6 @@ int MainWindow::displayTwoImageInPosition(int position)
             comic->setCurrentPage(position);
         }
     }
-    qInfo() << nextImage1;
-    qInfo() << nextImage2;
     QPixmap *pixmap = new QPixmap(nextImage1->getWidth()+nextImage2->getWidth()+3, (nextImage1->getHeight() > nextImage2->getHeight()) ? nextImage1->getHeight() : nextImage2->getHeight());
     pixmap->fill(Qt::transparent);
     QPainter *painter = new QPainter(pixmap);
@@ -620,7 +579,6 @@ void MainWindow::pageReady() {
     }
 
     if (comic->getPageCount() == 2){
-        qInfo() << "<<<<<<<<<<<<<<<<<<<" << comic->getCurrentPage() << comic->getPageCount();
         processNextPixmap();
     }
     QPixmap emptyThumbnail(200, 200);
@@ -649,8 +607,6 @@ void MainWindow::pageReady() {
 
 void MainWindow::pixmapReady(const QImage &qimage, const QPixmap &pixmap, const int i)
 {
-    qInfo() << "pixmap ready " << i;
-    qInfo() << "current page " << comic->getCurrentPage();
     if (i > comic->getCurrentPage()){
         nextPixmap = pixmap;
         nextImage = qimage;
@@ -671,7 +627,6 @@ void MainWindow::pixmapReady(const QImage &qimage, const QPixmap &pixmap, const 
 }
 
 void MainWindow::zoomReady(const QPixmap &pixmap) {
-    qInfo() << "----FINISHED ZOOM PIXMAP----";
     zoomPixmap = pixmap;
     imageLabel->setPixmap(zoomPixmap);
     imageLabel->adjustSize();
@@ -716,7 +671,6 @@ void MainWindow::asyncZoomForAlgorithm(int width, int height, ScalingAlgorithms 
     QObject::connect( siWorker, SIGNAL(finished()), thread, SLOT(quit()));
 
     Image *img = comic->getPages().value(comic->getCurrentPage());
-    qInfo()<< currentImage;
     QImage qimage = currentImage;
     img->setQImage(qimage);
     img->setWidth(currentImage.width());
@@ -736,11 +690,9 @@ void MainWindow::processNextPixmap()
     int nextPosition = currentPosition;
     if (twoPage)
         if (comic->getPages().value(currentPosition)->isDoublePage()) {
-            qInfo() << "current page is double page";
             nextPosition = currentPosition+1;
         }
         else if (comic->getPages().value(currentPosition)->isLeftPage()) {
-            qInfo() << "current page is NOT double page";
             nextPosition = nextPosition+2;
         }
         else {

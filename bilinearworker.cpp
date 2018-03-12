@@ -9,7 +9,6 @@ BilinearWorker::BilinearWorker()
 
 void BilinearWorker::start()
 {
-    qInfo() << this;
     qInfo() << "bilinearworker";
     QImage qimage;
     QPixmap *pixmap;

@@ -34,7 +34,6 @@ int CBZComic::extract(const QMainWindow *mainWindow)
 void CBZComic::stopExtracting()
 {
     qInfo() << "begin stop";
-    qInfo() << getThumbnailThread().size();
     cbzWorker->setRun(false);
     if (!thumbnailThread.empty()) {
         thumbnailThread.value(0)->exit();

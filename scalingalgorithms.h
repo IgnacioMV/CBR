@@ -4,8 +4,7 @@
 enum class ScalingAlgorithms
   {
     Downsampling,
-    Bilinear,
-    CustomConvolutional
+    Bilinear
   };
 
 #endif // SCALINGALGORITHMS_H

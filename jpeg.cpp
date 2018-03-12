@@ -8,7 +8,7 @@
 #include <QMainWindow>
 #include <QThread>
 #include "scaleimageworker.h"
-#include "mainwindow.h"
+#include <QMainWindow>
 
 JPEG::JPEG() : Image()
 {
@@ -27,7 +27,6 @@ QPixmap JPEG::getPixmapForSize(int w, int h)
 
 void JPEG::getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h,  int i, ScalingAlgorithms algorithm, DisplayMode displayMode)
 {
-
     QThread *thread = new QThread();
     ScaleImageWorker *siWorker = ScaleImageWorker::make_scaleImageWorker(algorithm);
 

@@ -1,6 +1,5 @@
 #include "scaleimageworker.h"
 #include "bilinearworker.h"
-#include "customconvolutionalworker.h"
 #include "downsamplingworker.h"
 
 ScaleImageWorker::ScaleImageWorker()
@@ -20,8 +19,6 @@ ScaleImageWorker *ScaleImageWorker::make_scaleImageWorker(const ScalingAlgorithm
         return new DownsamplingWorker;
     else if (algorithm ==  ScalingAlgorithms::Bilinear)
         return new BilinearWorker;
-    else if (algorithm == ScalingAlgorithms::CustomConvolutional)
-        return new CustomConvolutionalWorker;
     else
         return new DownsamplingWorker;
 }

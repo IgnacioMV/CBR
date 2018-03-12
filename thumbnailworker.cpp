@@ -34,10 +34,6 @@ void ThumbnailWorker::start()
 {
     if (sourceImage == NULL)
         return;
-    //qsrand(i);
-    //int rand = qrand() % ((25 + 1) - 25*i) + 25*i;
-    //qInfo() << "sleep: " << rand;
-    //QThread::msleep(rand);
 
     QPixmap thumbnail = sourceImage->getThumbnail();
     emit thumbnailCreated( thumbnail, this->i );

@@ -38,8 +38,7 @@ SOURCES += \
     scaleimageworker.cpp \
     image.cpp \
     downsamplingworker.cpp \
-    bilinearworker.cpp \
-    customconvolutionalworker.cpp
+    bilinearworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -54,7 +53,6 @@ HEADERS += \
     scaleimageworker.h \
     downsamplingworker.h \
     bilinearworker.h \
-    customconvolutionalworker.h \
     scalingalgorithms.h \
     displaymode.h
 
