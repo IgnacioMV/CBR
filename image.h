@@ -5,7 +5,6 @@
 #include <QMimeType>
 #include <QMainWindow>
 #include "scalingalgorithms.h"
-#include "displaymode.h"
 
 class Image : public QObject
 {
@@ -27,7 +26,7 @@ public:
     bool isDoublePage() { return this->doublePage; }
     bool isLeftPage() { return this->leftPage; }
     virtual QPixmap getPixmapForSize(int w, int h) = 0;
-    virtual void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i,  ScalingAlgorithms algorithm, DisplayMode dispayMode) = 0;
+    virtual void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i,  ScalingAlgorithms algorithm) = 0;
     virtual QPixmap getThumbnail() = 0;
     virtual ~Image(){}
 

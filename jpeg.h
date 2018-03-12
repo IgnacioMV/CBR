@@ -3,7 +3,6 @@
 
 #include "image.h"
 #include <QMainWindow>
-#include "displaymode.h"
 
 class JPEG: public Image
 {
@@ -11,7 +10,7 @@ class JPEG: public Image
 public:
     JPEG();
     QPixmap getPixmapForSize(int w, int h);
-    void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i, ScalingAlgorithms algorithm, DisplayMode displayMode);
+    void getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h, int i, ScalingAlgorithms algorithm);
     QPixmap getThumbnail();
     ~JPEG(){}
 };

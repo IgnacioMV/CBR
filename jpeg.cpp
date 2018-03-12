@@ -25,7 +25,7 @@ QPixmap JPEG::getPixmapForSize(int w, int h)
     return QPixmap::fromImage(this->getQImage()).scaled(w,h,Qt::KeepAspectRatio, Qt::FastTransformation);
 }
 
-void JPEG::getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h,  int i, ScalingAlgorithms algorithm, DisplayMode displayMode)
+void JPEG::getPixmapForSizeAndAlgorithm(const QMainWindow *mainWindow, int w, int h,  int i, ScalingAlgorithms algorithm)
 {
     QThread *thread = new QThread();
     ScaleImageWorker *siWorker = ScaleImageWorker::make_scaleImageWorker(algorithm);
