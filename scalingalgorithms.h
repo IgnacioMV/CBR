@@ -4,7 +4,8 @@
 enum class ScalingAlgorithms
   {
     Downsampling,
-    Bilinear
+    Bilinear,
+    Bicubic
   };
 
 #endif // SCALINGALGORITHMS_H

@@ -18,6 +18,7 @@
 #include <QScrollBar>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QFont>
 #include <QCommonStyle>
 
 #include "comic.h"
@@ -61,15 +62,23 @@ MainWindow::MainWindow(QWidget *parent) :
     scrollArea->verticalScrollBar()->installEventFilter(this);
 
     QHBoxLayout *btnLayout = new QHBoxLayout;
-    firstPageButton = new QPushButton("First");
-    previousPageButton = new QPushButton("Previous");
-    nextPageButton = new QPushButton("Next");
-    lastPageButton = new QPushButton("Last");
+    //firstPageButton = new QPushButton("First");
+    //previousPageButton = new QPushButton("Previous");
+    //nextPageButton = new QPushButton("Next");
+    //lastPageButton = new QPushButton("Last");
+    firstPageButton = new QPushButton(QIcon(":images/double_left.png"), "");
+    previousPageButton = new QPushButton(QIcon(":images/single_left.png"), "");
+    nextPageButton = new QPushButton(QIcon(":images/single_right.png"), "");
+    lastPageButton = new QPushButton(QIcon(":images/double_right.png"), "");
 
     currentPageLabel = new QLabel(" ");
     currentPageLabel->setStyleSheet("QLabel { background-color : white }");
-    currentPageLabel->setFixedWidth(50);
+    currentPageLabel->setFixedWidth(55);
     currentPageLabel->setAlignment(Qt::AlignCenter);
+    QFont font = currentPageLabel->font();
+    font.setPointSize(18);
+    font.setBold(true);
+    currentPageLabel->setFont(font);
 
     QObject::connect(nextPageButton, SIGNAL(clicked()), this, SLOT(nextPage()));
     QObject::connect(previousPageButton,SIGNAL(clicked()), this, SLOT(previousPage()));
@@ -179,11 +188,13 @@ void MainWindow::createActions()
     QMenu *algorithmMenu =viewMenu->addMenu(tr("&Algorithm"));
     downsamplingAct = algorithmMenu->addAction(tr("Downsampling"), this, &MainWindow::downsamplingMode);
     bilinearAct = algorithmMenu->addAction(tr("Bilinear"), this, &MainWindow::bilinearMode);
+    bicubicAct = algorithmMenu->addAction(tr("Bicubic"), this, &MainWindow::bicubicMode);
+
 
     QCommonStyle* myStyle = new QCommonStyle;
     QIcon chosenIcon = myStyle->standardIcon(QStyle::SP_DialogApplyButton );
     downsamplingAct->setIcon(chosenIcon);
-
+    fitToWindowAct->setIcon(chosenIcon);
 }
 
 void MainWindow::enablePageActions()
@@ -298,64 +309,116 @@ void MainWindow::zoomOut()
 
 void MainWindow::fitWidth()
 {
-    setViewModeIcon(fitWidthAct);
-    displayMode = DisplayMode::FitToWidth;
+    changeSelectedDisplayMode(DisplayMode::FitToWidth);
 
 }
 
 void MainWindow::fitHeight()
 {
-    setViewModeIcon(fitHeightAct);
-    displayMode = DisplayMode::FitToHeight;
+    changeSelectedDisplayMode(DisplayMode::FitToHeight);
 }
 
 
 void MainWindow::fitToWindow()
 {
-    setViewModeIcon(fitToWindowAct);
-    displayMode = DisplayMode::FitToPage;
+    changeSelectedDisplayMode(DisplayMode::FitToPage);
 }
 
 void MainWindow::fitOriginal()
 {
-    setViewModeIcon(originalAct);
-    displayMode = DisplayMode::Original;
+    changeSelectedDisplayMode(DisplayMode::Original);
 }
 
-void MainWindow::downsamplingMode()
+void MainWindow::changeSelectedDisplayMode(DisplayMode mode)
 {
-    scalingAlgorithm = ScalingAlgorithms::Downsampling;
-    bilinearAct->setIcon(QIcon());
-    QCommonStyle* myStyle = new QCommonStyle;
-    QIcon chosenIcon = myStyle->standardIcon(QStyle::SP_DialogApplyButton );
-    downsamplingAct->setIcon(chosenIcon);
-    if (comicOpened) {
-        processNextPixmap();
-        processPreviousPixmap();
-    }
-}
+    displayMode = mode;
+    scaleFactor = 1.0;
+    zoomInAct->setEnabled(true);
+    zoomOutAct->setEnabled(false);
+    int width = (displayMode == DisplayMode::Original || displayMode == DisplayMode::FitToHeight) ? 0 : scrollArea->width();
+    int height = (displayMode == DisplayMode::Original || displayMode == DisplayMode::FitToWidth) ? 0 : scrollArea->height();
+    asyncResizeImageForAlgorithm(comic->getCurrentPage(), width, height, scalingAlgorithm);
 
-void MainWindow::bilinearMode()
-{
-    scalingAlgorithm = ScalingAlgorithms::Bilinear;
-    downsamplingAct->setIcon(QIcon());
-    QCommonStyle* myStyle = new QCommonStyle;
-    QIcon chosenIcon = myStyle->standardIcon(QStyle::SP_DialogApplyButton );
-    bilinearAct->setIcon(chosenIcon);
-    if (comicOpened) {
-        processNextPixmap();
-        processPreviousPixmap();
-    }
-}
-
-void MainWindow::setViewModeIcon(QAction *act) {
     fitWidthAct->setIcon(QIcon());
     fitHeightAct->setIcon(QIcon());
     fitToWindowAct->setIcon(QIcon());
     originalAct->setIcon(QIcon());
     QCommonStyle* myStyle = new QCommonStyle;
     QIcon chosenIcon = myStyle->standardIcon(QStyle::SP_DialogApplyButton );
-    act->setIcon(chosenIcon);
+    switch(mode) {
+        case DisplayMode::FitToWidth :
+        {
+            fitWidthAct->setIcon(chosenIcon);
+            break;
+        }
+    case DisplayMode::FitToHeight :
+        {
+            fitHeightAct->setIcon(chosenIcon);
+            break;
+        }
+    case DisplayMode::FitToPage :
+        {
+            fitToWindowAct->setIcon(chosenIcon);
+            break;
+        }
+    case DisplayMode::Original :
+        {
+            originalAct->setIcon(chosenIcon);
+            break;
+        }
+    }
+    if (comicOpened) {
+        processNextPixmap();
+        processPreviousPixmap();
+    }
+}
+
+void MainWindow::downsamplingMode()
+{
+    changeSelectedAlgorithm(ScalingAlgorithms::Downsampling);
+}
+
+void MainWindow::bilinearMode()
+{
+    changeSelectedAlgorithm(ScalingAlgorithms::Bilinear);
+}
+
+void MainWindow::bicubicMode()
+{
+    changeSelectedAlgorithm(ScalingAlgorithms::Bicubic);
+}
+
+void MainWindow::changeSelectedAlgorithm(ScalingAlgorithms algorithm)
+{
+    scalingAlgorithm = algorithm;
+    downsamplingAct->setIcon(QIcon());
+    bilinearAct->setIcon(QIcon());
+    bicubicAct->setIcon(QIcon());
+    QCommonStyle* myStyle = new QCommonStyle;
+    QIcon chosenIcon = myStyle->standardIcon(QStyle::SP_DialogApplyButton );
+    switch(algorithm) {
+        case ScalingAlgorithms::Downsampling :
+        {
+            downsamplingAct->setIcon(chosenIcon);
+            break;
+        }
+        case ScalingAlgorithms::Bilinear :
+        {
+            bilinearAct->setIcon(chosenIcon);
+            break;
+        }
+        case ScalingAlgorithms::Bicubic :
+        {
+            bicubicAct->setIcon(chosenIcon);
+            break;
+        }
+        default :
+            downsamplingAct->setIcon(chosenIcon);
+    }
+    if (comicOpened) {
+        processNextPixmap();
+        processPreviousPixmap();
+    }
 }
 
 void MainWindow::normalSize()
@@ -370,16 +433,23 @@ void MainWindow::normalSize()
 void MainWindow::scaleImage(double factor)
 {
     Q_ASSERT(imageLabel->pixmap());
+    qInfo() << "currentPixmap width : " << currentPixmap.width();
     scaleFactor *= factor;
-    int w = scrollArea->width();
-    int h = scrollArea->height();
-    imageLabel->setPixmap(currentPixmap.scaled(w*scaleFactor, h*scaleFactor));
-    imageLabel->adjustSize();
+    int w = (displayMode == DisplayMode::Original) ? imageLabel->width() : scrollArea->width();
+    int h = (displayMode == DisplayMode::Original) ? imageLabel->height() : scrollArea->height();
+    int w1 = imageLabel->width();
+    int h1 = imageLabel->height();
+    qInfo() << "scaleImage w : " << w;
+    qInfo() << "scaleImage h : " << h;
+    qInfo() << "scaleImage w1 : " << w1;
+    qInfo() << "scaleImage h1 : " << h1;
+    //imageLabel->setPixmap(currentPixmap.scaled(w*scaleFactor, h*scaleFactor));
+    //imageLabel->adjustSize();
     asyncZoomForAlgorithm(w*scaleFactor, h*scaleFactor, scalingAlgorithm);
     adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(scrollArea->verticalScrollBar(), factor);
 
-    zoomInAct->setEnabled(scaleFactor < 6.0);
+    zoomInAct->setEnabled(scaleFactor < 3.0);
     zoomOutAct->setEnabled(scaleFactor > 1.0);
 }
 
@@ -430,7 +500,6 @@ void MainWindow::previousPage()
     currentImage = previousImage;
     previousImage= QImage();
 
-
     int currentPosition = comic->getCurrentPage();
     int nextPosition = currentPosition;
     if (twoPage && currentPosition != 1)
@@ -455,6 +524,7 @@ void MainWindow::previousPage()
 
 void MainWindow::firstPage()
 {
+    scaleFactor = 1.0;
     if (firstPixmap.isNull())
         (twoPage) ? displayTwoImageInPosition(0) : this->displayImageInPosition(0);
     else {
@@ -471,6 +541,7 @@ void MainWindow::firstPage()
 
 void MainWindow::lastPage()
 {
+    scaleFactor = 1.0;
     int lastPage = comic->getPageCount()-1;
     if (lastPixmap.isNull())
         (twoPage) ? this->displayTwoImageInPosition(lastPage) : this->displayImageInPosition(lastPage);
@@ -506,10 +577,9 @@ int MainWindow::displayImageInPosition(int position)
         currentPixmap = comic->getPages().value(currentPage)->getPixmapForSize(w, h);
         imageLabel->setPixmap(comic->getPages().value(comic->getCurrentPage())->getPixmapForSize(w, h));
         imageLabel->adjustSize();
-        //normalSize();
     }
     comic->setCurrentPage(position);
-
+    scaleFactor = 1.0;
     currentPageLabel->setText(QString::number(position));
 
     return 0;
@@ -608,6 +678,11 @@ void MainWindow::pageReady() {
 
 void MainWindow::pixmapReady(const QImage &qimage, const QPixmap &pixmap, const int i)
 {
+    if (i == comic->getCurrentPage()) {
+        currentPixmap = pixmap;
+        imageLabel->setPixmap(pixmap);
+        imageLabel->adjustSize();
+    }
     if (i > comic->getCurrentPage()){
         nextPixmap = pixmap;
         nextImage = qimage;

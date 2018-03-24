@@ -13,7 +13,8 @@ TARGET = CBR
 TEMPLATE = app
 
 LIBS += -L/usr/local/lib -larchive
-
+INCLUDEPATH += /usr/local/include/opencv
+LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgproc -lopencv_imgcodecs
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
 # depend on your compiler). Please consult the documentation of the
@@ -38,7 +39,8 @@ SOURCES += \
     scaleimageworker.cpp \
     image.cpp \
     downsamplingworker.cpp \
-    bilinearworker.cpp
+    bilinearworker.cpp \
+    bicubicworker.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -55,7 +57,11 @@ HEADERS += \
     bilinearworker.h \
     scalingalgorithms.h \
     displaymode.h \
-    extractworker.h
+    extractworker.h \
+    bicubicworker.h
 
 FORMS += \
         mainwindow.ui
+
+RESOURCES += \
+    images.qrc

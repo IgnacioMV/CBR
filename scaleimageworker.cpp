@@ -1,6 +1,7 @@
 #include "scaleimageworker.h"
 #include "bilinearworker.h"
 #include "downsamplingworker.h"
+#include "bicubicworker.h"
 
 ScaleImageWorker::ScaleImageWorker()
 {
@@ -19,6 +20,8 @@ ScaleImageWorker *ScaleImageWorker::make_scaleImageWorker(const ScalingAlgorithm
         return new DownsamplingWorker;
     else if (algorithm ==  ScalingAlgorithms::Bilinear)
         return new BilinearWorker;
+    else if (algorithm == ScalingAlgorithms::Bicubic)
+        return new BicubicWorker;
     else
         return new DownsamplingWorker;
 }

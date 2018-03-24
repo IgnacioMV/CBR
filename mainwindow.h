@@ -61,6 +61,7 @@ private slots:
 
     void downsamplingMode();
     void bilinearMode();
+    void bicubicMode();
 
     void setThumbnail(const QPixmap &thumbnail, const int i);
     void onThumbnailDoubleClick(QListWidgetItem *item);
@@ -84,6 +85,8 @@ private:
     void processNextPixmap();
     void processPreviousPixmap();
     void setViewModeIcon(QAction *act);
+    void changeSelectedDisplayMode(DisplayMode mode);
+    void changeSelectedAlgorithm(ScalingAlgorithms algorithm);
 
     bool comicOpened;
     double scaleFactor;
@@ -129,6 +132,7 @@ private:
 
     QAction *downsamplingAct;
     QAction *bilinearAct;
+    QAction *bicubicAct;
 
     bool eventFilter(QObject *obj, QEvent *event);
 };
