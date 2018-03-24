@@ -294,7 +294,6 @@ void MainWindow::setThumbnail(const QPixmap &thumbnail, const int i)
 
 void MainWindow::onThumbnailDoubleClick(QListWidgetItem *item)
 {
-    qInfo() << "double clicked item: " << item->checkState();
     int row = thumbnailList->currentIndex().row();
     (twoPage) ? displayTwoImageInPosition(row) : displayImageInPosition(row);
     updatePageActions();
@@ -446,18 +445,11 @@ void MainWindow::normalSize()
 void MainWindow::scaleImage(double factor)
 {
     Q_ASSERT(imageLabel->pixmap());
-    qInfo() << "currentPixmap width : " << currentPixmap.width();
     scaleFactor *= factor;
     int w = (displayMode == DisplayMode::Original) ? imageLabel->width() : scrollArea->width();
     int h = (displayMode == DisplayMode::Original) ? imageLabel->height() : scrollArea->height();
     int w1 = imageLabel->width();
     int h1 = imageLabel->height();
-    qInfo() << "scaleImage w : " << w;
-    qInfo() << "scaleImage h : " << h;
-    qInfo() << "scaleImage w1 : " << w1;
-    qInfo() << "scaleImage h1 : " << h1;
-    //imageLabel->setPixmap(currentPixmap.scaled(w*scaleFactor, h*scaleFactor));
-    //imageLabel->adjustSize();
     asyncZoomForAlgorithm(w*scaleFactor, h*scaleFactor, scalingAlgorithm);
     adjustScrollBar(scrollArea->horizontalScrollBar(), factor);
     adjustScrollBar(scrollArea->verticalScrollBar(), factor);
