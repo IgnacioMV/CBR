@@ -229,6 +229,7 @@ void MainWindow::updatePageActions()
         firstPageButton->setEnabled(false);
     }
     currentPageLabel->setText(QString::number(comic->getCurrentPage()));
+    thumbnailList->setCurrentRow(comic->getCurrentPage());
 }
 
 void MainWindow::openFile()
@@ -267,6 +268,18 @@ void MainWindow::closeFile()
     firstPageShown = false;
     delete comic;
     comic = NULL;
+    previousImage = QImage();
+    currentImage = QImage();
+    nextImage = QImage();
+    firstImage = QImage();
+    lastImage = QImage();
+
+    zoomPixmap = QPixmap();
+    previousPixmap = QPixmap();
+    currentPixmap = QPixmap();
+    nextPixmap = QPixmap();
+    lastPixmap = QPixmap();
+    firstPixmap = QPixmap();
     updatePageActions();
     imageLabel->setPixmap(QPixmap());
     thumbnailList->clear();
@@ -571,8 +584,8 @@ int MainWindow::displayImageInPosition(int position)
         imageLabel->setPixmap(nextPixmap);
     else {
         comic->setCurrentPage(position);
-        int w = scrollArea->width();
-        int h = scrollArea->height();
+        int w = (displayMode == DisplayMode::Original) ? imageLabel->width() : scrollArea->width();
+        int h = (displayMode == DisplayMode::Original) ? imageLabel->height() : scrollArea->height();
         int currentPage = comic->getCurrentPage();
         currentPixmap = comic->getPages().value(currentPage)->getPixmapForSize(w, h);
         imageLabel->setPixmap(comic->getPages().value(comic->getCurrentPage())->getPixmapForSize(w, h));
@@ -617,7 +630,9 @@ int MainWindow::displayTwoImageInPosition(int position)
     painter->drawPixmap(nextImage1->getWidth()+1, 0, 3, pixmap->height(), pageSep);
     painter->drawPixmap(nextImage1->getWidth()+4, 0, nextImage2->getWidth(), nextImage2->getHeight(), QPixmap::fromImage(nextImage2->getQImage()));
     painter->end();
-    currentPixmap = (pixmap->scaled(scrollArea->width(), scrollArea->height(), Qt::KeepAspectRatio));
+    int w = (displayMode == DisplayMode::Original) ? imageLabel->width() : scrollArea->width();
+    int h = (displayMode == DisplayMode::Original) ? imageLabel->height() : scrollArea->height();
+    currentPixmap = (pixmap->scaled(w, h, Qt::KeepAspectRatio));
     imageLabel->setPixmap(currentPixmap);
     imageLabel->adjustSize();
     comic->setCurrentPage(position);
